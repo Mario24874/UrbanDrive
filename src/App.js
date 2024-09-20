@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { auth, db } from './firebase';
+import { auth } from './firebase';
 import { supabaseClient } from './supabase';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-//import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+// Eliminar la importación de db
+// import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import backgroundImage from './assets/images/background.jpg';
 import Welcome from './components/Welcome';
 import Register from './components/Register';
