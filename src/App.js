@@ -25,7 +25,6 @@ const App = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log('Auth state changed:', user);
       if (user) {
         setUser(user);
         setIsAuthenticated(true);
@@ -40,39 +39,34 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    const fetchLocations = async () => {
-      const { data, error } = await supabaseClient.from('locations').select('*');
-      if (error) {
-        console.error(error);
-      } else {
-        setLocations(data.reduce((acc, location) => ({ ...acc, [location.driver_id]: location }), {}));
-      }
-    };
-    fetchLocations();
-  }, []);
+    const fetchData = async () => {
+      const [locationsData, messagesData] = await Promise.all([
+        supabaseClient.from('locations').select('*'),
+        supabaseClient.from('messages').select('*')
+      ]);
 
-  useEffect(() => {
-    const fetchMessages = async () => {
-      const { data, error } = await supabaseClient.from('messages').select('*');
-      if (error) {
-        console.error(error);
+      if (locationsData.error) {
+        console.error(locationsData.error);
       } else {
-        setMessages(data);
+        setLocations(locationsData.data.reduce((acc, location) => ({ ...acc, [location.driver_id]: location }), {}));
+      }
+
+      if (messagesData.error) {
+        console.error(messagesData.error);
+      } else {
+        setMessages(messagesData.data);
       }
     };
-    fetchMessages();
+
+    fetchData();
   }, []);
 
   const handleRegister = async (data) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      const { error } = await supabaseClient.from('users').insert([{ id: userCredential.user.uid }]);
-      if (error) {
-        console.error(error);
-      } else {
-        setUser(userCredential.user);
-        setIsAuthenticated(true);
-      }
+      await supabaseClient.from('users').insert([{ id: userCredential.user.uid }]);
+      setUser(userCredential.user);
+      setIsAuthenticated(true);
     } catch (error) {
       console.error(error);
     }
