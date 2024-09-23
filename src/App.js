@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from './firebase';
 import { supabaseClient } from './supabase';
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import backgroundImage from './assets/images/background.jpg';
 import Welcome from './components/Welcome';
 import Register from './components/Register';
@@ -100,6 +100,18 @@ const App = () => {
     setSelectedDriver(driverId);
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      setIsAuthenticated(false);
+      alert('Logged out successfully');
+    } catch (error) {
+      console.error(error);
+      alert('Error logging out');
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -111,6 +123,12 @@ const App = () => {
           <Welcome />
           {isAuthenticated ? (
             <div className="space-y-4">
+              <button
+                className="inline-block cursor-pointer rounded-md bg-gray-700 px-4 py-3.5 text-center text-sm font-semibold uppercase text-white transition duration-200 ease-in-out hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-700 focus-visible:ring-offset-2 active:scale-95"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
               <Drivers user={user} handleSelectDriver={handleSelectDriver} />
               {selectedDriver && (
                 <div className="space-y-4">
