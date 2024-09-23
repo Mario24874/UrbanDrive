@@ -14,6 +14,7 @@ const Auth = () => {
       alert('Logged in successfully!');
     } catch (error) {
       console.error(error);
+      alert('Login failed. Please check your credentials.');
     }
   };
 
@@ -24,6 +25,7 @@ const Auth = () => {
       alert('User registered successfully!');
     } catch (error) {
       console.error(error);
+      alert('Registration failed. Please try again.');
     }
   };
 
@@ -128,21 +130,6 @@ const Auth = () => {
             Test Components
           </h3>
           <ul className="mt-4 space-y-2">
-            <li>
-              <Link to="/firestore-example" className="text-indigo-600 hover:text-indigo-800">
-                Firestore Example
-              </Link>
-            </li>
-            <li>
-              <Link to="/realtime-database-example" className="text-indigo-600 hover:text-indigo-800">
-                Realtime Database Example
-              </Link>
-            </li>
-            <li>
-              <Link to="/storage-example" className="text-indigo-600 hover:text-indigo-800">
-                Storage Example
-              </Link>
-            </li>
             <li>
               <Link to="/geolocation" className="text-indigo-600 hover:text-indigo-800">
                 Geolocation

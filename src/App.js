@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { auth } from './firebase';
 import { supabaseClient } from './supabase';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-// Eliminar la importación de db
-// import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import backgroundImage from './assets/images/background.jpg';
 import Welcome from './components/Welcome';
 import Register from './components/Register';
@@ -11,9 +9,6 @@ import Login from './components/Login';
 import Drivers from './components/Drivers';
 import Messages from './components/Messages';
 import Locations from './components/Locations';
-import FirestoreExample from './components/FirestoreExample';
-import RealtimeDatabaseExample from './components/RealtimeDatabaseExample';
-import StorageExample from './components/StorageExample';
 import Geolocation from './components/Geolocation';
 import DriverMap from './components/DriverMap';
 import DriverInvitations from './components/DriverInvitations';
@@ -83,12 +78,12 @@ const App = () => {
 
   const handleRegister = async (data) => {
     try {
-      const user = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      const { data: userData, error } = await supabaseClient.from('users').insert([user]);
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const { data: userData, error } = await supabaseClient.from('users').insert([{ id: userCredential.user.uid }]);
       if (error) {
         console.error(error);
       } else {
-        setUser(userData[0]);
+        setUser(userCredential.user);
         setIsAuthenticated(true);
       }
     } catch (error) {
@@ -98,11 +93,12 @@ const App = () => {
 
   const handleAuthentication = async (data) => {
     try {
-      const user = await signInWithEmailAndPassword(auth, data.email, data.password);
-      setUser(user);
+      const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+      setUser(userCredential.user);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error(error);
+      console.error('Error during authentication:', error);
+      alert('Authentication failed. Please check your credentials.');
     }
   };
 
@@ -139,6 +135,7 @@ const App = () => {
                 <div className="space-y-4">
                   <Locations locations={locations} selectedDriver={selectedDriver} />
                   <Messages messages={messages} newMessage={newMessage} setNewMessage={setNewMessage} handleSendMessage={handleSendMessage} />
+                  <DriverMap />
                 </div>
               )}
             </div>
@@ -151,9 +148,6 @@ const App = () => {
         </div>
         <Routes>
           <Route path="/" element={<div>Home</div>} />
-          <Route path="/firestore-example" element={<FirestoreExample />} />
-          <Route path="/realtime-database-example" element={<RealtimeDatabaseExample />} />
-          <Route path="/storage-example" element={<StorageExample />} />
           <Route path="/geolocation" element={<Geolocation />} />
           <Route path="/driver-map" element={<DriverMap />} />
           <Route path="/driver-invitations" element={<DriverInvitations driver={user} />} />
