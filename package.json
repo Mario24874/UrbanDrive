@@ -2,6 +2,7 @@
   "name": "urbandrive",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://urban-drive.netlify.app",
   "dependencies": {
     "@react-google-maps/api": "^2.19.3",
     "@supabase/supabase-js": "^2.45.4",

@@ -79,7 +79,7 @@ const App = () => {
   const handleRegister = async (data) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      const { data: userData, error } = await supabaseClient.from('users').insert([{ id: userCredential.user.uid }]);
+      const { error } = await supabaseClient.from('users').insert([{ id: userCredential.user.uid }]);
       if (error) {
         console.error(error);
       } else {
