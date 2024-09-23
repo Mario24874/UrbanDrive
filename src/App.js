@@ -16,7 +16,6 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [drivers, setDrivers] = useState([]);
   const [locations, setLocations] = useState({});
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -38,18 +37,6 @@ const App = () => {
     });
 
     return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const fetchDrivers = async () => {
-      const { data, error } = await supabaseClient.from('drivers').select('*');
-      if (error) {
-        console.error(error);
-      } else {
-        setDrivers(data);
-      }
-    };
-    fetchDrivers();
   }, []);
 
   useEffect(() => {
@@ -130,7 +117,7 @@ const App = () => {
           <Welcome />
           {isAuthenticated ? (
             <div className="space-y-4">
-              <Drivers drivers={drivers} handleSelectDriver={handleSelectDriver} />
+              <Drivers user={user} handleSelectDriver={handleSelectDriver} />
               {selectedDriver && (
                 <div className="space-y-4">
                   <Locations locations={locations} selectedDriver={selectedDriver} />
