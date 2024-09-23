@@ -3,9 +3,15 @@ import { supabaseClient } from '../supabase';
 
 const Drivers = ({ user, handleSelectDriver }) => {
   const [drivers, setDrivers] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchInvitedDrivers = async () => {
+      if (!user || !user.id) {
+        setError('User not authenticated');
+        return;
+      }
+
       try {
         const { data, error } = await supabaseClient
           .from('invitations')
@@ -13,7 +19,7 @@ const Drivers = ({ user, handleSelectDriver }) => {
           .eq('user_id', user.id)
           .eq('status', 'accepted');
         if (error) {
-          console.error(error);
+          setError(error.message);
         } else {
           const driverIds = data.map(invitation => invitation.driver_id);
           const { data: driverData, error: driverError } = await supabaseClient
@@ -21,17 +27,21 @@ const Drivers = ({ user, handleSelectDriver }) => {
             .select('*')
             .in('id', driverIds);
           if (driverError) {
-            console.error(driverError);
+            setError(driverError.message);
           } else {
             setDrivers(driverData);
           }
         }
       } catch (error) {
-        console.error(error);
+        setError(error.message);
       }
     };
     fetchInvitedDrivers();
   }, [user.id]);
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="bg-slate-900 bg-opacity-50 p-6 rounded-lg shadow-lg">
