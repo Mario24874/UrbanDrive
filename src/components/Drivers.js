@@ -37,7 +37,7 @@ const Drivers = ({ user, handleSelectDriver }) => {
       }
     };
     fetchInvitedDrivers();
-  }, [user.id]);
+  }, [user]); // Añadir 'user' como dependencia
 
   if (error) {
     return <div>Error: {error}</div>;
