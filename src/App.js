@@ -24,8 +24,26 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        const { data, error } = await supabaseClient.from('users').select('id').eq('id', user.uid).single();
+        if (error) {
+          console.error(error);
+        } else if (!data) {
+          // Si el usuario no existe en Supabase, crear un registro
+          const { error: insertError } = await supabaseClient.from('users').insert([{
+            id: user.uid,
+            email: user.email,
+            display_name: user.displayName || '',
+            phone: user.phoneNumber || '',
+            provider: user.providerData[0].providerId,
+            created: new Date().toISOString(),
+            last_sign_in: new Date().toISOString(),
+          }]);
+          if (insertError) {
+            console.error(insertError);
+          }
+        }
         setUser(user);
         setIsAuthenticated(true);
       } else {
@@ -64,11 +82,25 @@ const App = () => {
   const handleRegister = async (data) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      await supabaseClient.from('users').insert([{ id: userCredential.user.uid }]);
+      await supabaseClient.from('users').insert([{
+        id: userCredential.user.uid,
+        email: userCredential.user.email,
+        display_name: data.displayName,
+        phone: data.phone,
+        provider: 'email',
+        created: new Date().toISOString(),
+        last_sign_in: new Date().toISOString(),
+        user_type: data.userType,
+      }]);
       setUser(userCredential.user);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error(error);
+      if (error.code === 'auth/email-already-in-use') {
+        alert('The email address is already in use by another account.');
+      } else {
+        console.error(error);
+        alert('Error registering user in Firebase');
+      }
     }
   };
 

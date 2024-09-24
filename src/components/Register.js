@@ -1,7 +1,4 @@
 import React, { useState } from 'react';
-import { auth } from '../firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { supabaseClient } from '../supabase';
 
 const Register = ({ handleRegister }) => {
   const [email, setEmail] = useState('');
@@ -12,35 +9,13 @@ const Register = ({ handleRegister }) => {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [userType, setUserType] = useState('user'); // 'user' or 'driver'
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       alert('Passwords do not match');
       return;
     }
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const { error } = await supabaseClient.from('users').insert([{
-        id: userCredential.user.uid,
-        email,
-        display_name: displayName,
-        phone,
-        provider: 'email',
-        created: new Date().toISOString(),
-        last_sign_in: new Date().toISOString(),
-        user_type: userType,
-      }]);
-      if (error) {
-        console.error(error);
-        alert('Error registering user in Supabase');
-      } else {
-        alert('User registered successfully');
-        handleRegister(userCredential.user);
-      }
-    } catch (error) {
-      console.error(error);
-      alert('Error registering user in Firebase');
-    }
+    handleRegister({ email, password, displayName, phone, acceptTerms, userType });
   };
 
   return (
