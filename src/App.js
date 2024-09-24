@@ -26,6 +26,7 @@ const App = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        console.log('User UID:', user.uid); // Depurar el valor del UID
         const { data, error } = await supabaseClient.from('users').select('id').eq('id', user.uid).single();
         if (error) {
           console.error(error);
