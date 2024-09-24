@@ -1,7 +1,7 @@
 // src/App.js
 import React, { useState, useEffect } from 'react';
 import { auth } from './firebase';
-import { createSupabaseClient } from './supabase'; // Importar ambos clientes de Supabase
+import { createSupabaseClient } from './supabase'; // Importar la función para crear el cliente de Supabase
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import backgroundImage from './assets/images/background.jpg';
 import Welcome from './components/Welcome';
@@ -18,7 +18,7 @@ import { convertFirebaseUUIDToStandard } from './utils/utils'; // Importar la fu
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [supabaseClientWithToken, setSupabaseClientWithToken] = useState(null);
+  const [supabaseClient, setSupabaseClient] = useState(null);
   const [locations, setLocations] = useState({});
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -32,7 +32,7 @@ const App = () => {
         console.log('User UID:', user.uid); // Depurar el valor del UID
         const standardUUID = convertFirebaseUUIDToStandard(user.uid); // Convertir el UUID
         const client = await createSupabaseClient(); // Obtener el cliente de Supabase con el token de acceso
-        setSupabaseClientWithToken(client);
+        setSupabaseClient(client);
         const { data, error } = await client.from('users').select('id').eq('id', standardUUID).single();
         if (error) {
           console.error(error);
@@ -65,10 +65,10 @@ const App = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!supabaseClientWithToken) return;
+      if (!supabaseClient) return;
       const [locationsData, messagesData] = await Promise.all([
-        supabaseClientWithToken.from('locations').select('*'),
-        supabaseClientWithToken.from('messages').select('*')
+        supabaseClient.from('locations').select('*'),
+        supabaseClient.from('messages').select('*')
       ]);
 
       if (locationsData.error) {
@@ -85,7 +85,7 @@ const App = () => {
     };
 
     fetchData();
-  }, [supabaseClientWithToken]);
+  }, [supabaseClient]);
 
   const handleRegister = async (data) => {
     try {
@@ -127,7 +127,7 @@ const App = () => {
 
   const handleSendMessage = async (message) => {
     try {
-      const { data, error } = await supabaseClientWithToken.from('messages').insert([{ message, driver_id: selectedDriver }]);
+      const { data, error } = await supabaseClient.from('messages').insert([{ message, driver_id: selectedDriver }]);
       if (error) {
         console.error(error);
       } else {

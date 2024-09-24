@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabaseClient } from '../supabase';
+import { createSupabaseClient } from '../supabase';
 
 const Drivers = ({ user, handleSelectDriver }) => {
   const [drivers, setDrivers] = useState([]);
@@ -12,6 +12,7 @@ const Drivers = ({ user, handleSelectDriver }) => {
         return;
       }
 
+      const supabaseClient = await createSupabaseClient();
       try {
         const { data, error } = await supabaseClient
           .from('invitations')

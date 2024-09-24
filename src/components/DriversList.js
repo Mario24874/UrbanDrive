@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { supabaseClient } from '../supabase';
+import { createSupabaseClient } from '../supabase';
 
 const DriversList = ({ user }) => {
   const [drivers, setDrivers] = useState([]);
 
   useEffect(() => {
     const fetchDrivers = async () => {
+      const supabaseClient = await createSupabaseClient();
       const { data, error } = await supabaseClient.from('invitations').select('driver_id').eq('user_id', user.id).eq('status', 'accepted');
       if (error) {
         console.error(error);

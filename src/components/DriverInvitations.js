@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { supabaseClient } from '../supabase';
+import { createSupabaseClient } from '../supabase';
 
 const DriverInvitations = ({ driver }) => {
   const [invitations, setInvitations] = useState([]);
 
   useEffect(() => {
     const fetchInvitations = async () => {
+      const supabaseClient = await createSupabaseClient();
       const { data, error } = await supabaseClient.from('invitations').select('*').eq('driver_id', driver.id).eq('status', 'pending');
       if (error) {
         console.error(error);
@@ -17,6 +18,7 @@ const DriverInvitations = ({ driver }) => {
   }, [driver.id]);
 
   const handleAccept = async (invitationId) => {
+    const supabaseClient = await createSupabaseClient();
     try {
       const { error } = await supabaseClient.from('invitations').update({ status: 'accepted' }).eq('id', invitationId);
       if (error) {
@@ -31,6 +33,7 @@ const DriverInvitations = ({ driver }) => {
   };
 
   const handleReject = async (invitationId) => {
+    const supabaseClient = await createSupabaseClient();
     try {
       const { error } = await supabaseClient.from('invitations').update({ status: 'rejected' }).eq('id', invitationId);
       if (error) {

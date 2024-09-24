@@ -5,14 +5,11 @@ import { auth } from './firebase'; // Importa el objeto de autenticación de Fir
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseKey = process.env.REACT_APP_SUPABASE_KEY;
 
-// Cliente de Supabase sin token de acceso
-const supabaseClient = createClient(supabaseUrl, supabaseKey);
-
 // Función para obtener el token de acceso de Firebase
 const getAccessToken = async () => {
   const user = auth.currentUser;
   if (user) {
-    return await user.getIdToken();
+    return await user.getIdToken(true); // Obtener un token actualizado
   }
   return null;
 };
@@ -29,7 +26,7 @@ const createSupabaseClient = async () => {
       },
     });
   }
-  return supabaseClient; // Retorna el cliente sin token si no hay usuario autenticado
+  return createClient(supabaseUrl, supabaseKey);
 };
 
-export { createSupabaseClient, supabaseClient };
+export { createSupabaseClient };

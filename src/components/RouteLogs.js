@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { supabaseClient } from '../supabase';
+import { createSupabaseClient } from '../supabase';
 
 const RouteLogs = ({ selectedDriver }) => {
   const [routeLogs, setRouteLogs] = useState([]);
 
   useEffect(() => {
     const fetchRouteLogs = async () => {
+      const supabaseClient = await createSupabaseClient();
       const { data, error } = await supabaseClient.from('route_logs').select('*').eq('driver_id', selectedDriver);
       if (error) {
         console.error(error);

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { supabaseClient } from '../supabase';
+import { createSupabaseClient } from '../supabase';
 
 const InviteDriver = ({ user }) => {
   const [driverEmail, setDriverEmail] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const supabaseClient = await createSupabaseClient();
     try {
       const { data: driverData, error: driverError } = await supabaseClient.from('drivers').select('id').eq('email', driverEmail).single();
       if (driverError) {
