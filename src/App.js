@@ -1,6 +1,7 @@
+// src/App.js
 import React, { useState, useEffect } from 'react';
 import { auth } from './firebase';
-import { supabaseClient } from './supabase';
+import { createSupabaseClient } from './supabase'; // Importar ambos clientes de Supabase
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import backgroundImage from './assets/images/background.jpg';
 import Welcome from './components/Welcome';
@@ -13,10 +14,11 @@ import Geolocation from './components/Geolocation';
 import DriverMap from './components/DriverMap';
 import DriverInvitations from './components/DriverInvitations';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { convertFirebaseUUIDToStandard } from './utils/utils'; 
+import { convertFirebaseUUIDToStandard } from './utils/utils'; // Importar la función de conversión
 
 const App = () => {
   const [user, setUser] = useState(null);
+  const [supabaseClientWithToken, setSupabaseClientWithToken] = useState(null);
   const [locations, setLocations] = useState({});
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -29,12 +31,14 @@ const App = () => {
       if (user) {
         console.log('User UID:', user.uid); // Depurar el valor del UID
         const standardUUID = convertFirebaseUUIDToStandard(user.uid); // Convertir el UUID
-        const { data, error } = await supabaseClient.from('users').select('id').eq('id', standardUUID).single();
+        const client = await createSupabaseClient(); // Obtener el cliente de Supabase con el token de acceso
+        setSupabaseClientWithToken(client);
+        const { data, error } = await client.from('users').select('id').eq('id', standardUUID).single();
         if (error) {
           console.error(error);
         } else if (!data) {
           // Si el usuario no existe en Supabase, crear un registro
-          const { error: insertError } = await supabaseClient.from('users').insert([{
+          const { error: insertError } = await client.from('users').insert([{
             id: standardUUID,
             email: user.email,
             display_name: user.displayName || '',
@@ -61,9 +65,10 @@ const App = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!supabaseClientWithToken) return;
       const [locationsData, messagesData] = await Promise.all([
-        supabaseClient.from('locations').select('*'),
-        supabaseClient.from('messages').select('*')
+        supabaseClientWithToken.from('locations').select('*'),
+        supabaseClientWithToken.from('messages').select('*')
       ]);
 
       if (locationsData.error) {
@@ -80,13 +85,14 @@ const App = () => {
     };
 
     fetchData();
-  }, []);
+  }, [supabaseClientWithToken]);
 
   const handleRegister = async (data) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const standardUUID = convertFirebaseUUIDToStandard(userCredential.user.uid); // Convertir el UUID
-      await supabaseClient.from('users').insert([{
+      const client = await createSupabaseClient(); // Obtener el cliente de Supabase con el token de acceso
+      await client.from('users').insert([{
         id: standardUUID,
         email: userCredential.user.email,
         display_name: data.displayName,
@@ -121,7 +127,7 @@ const App = () => {
 
   const handleSendMessage = async (message) => {
     try {
-      const { data, error } = await supabaseClient.from('messages').insert([{ message, driver_id: selectedDriver }]);
+      const { data, error } = await supabaseClientWithToken.from('messages').insert([{ message, driver_id: selectedDriver }]);
       if (error) {
         console.error(error);
       } else {

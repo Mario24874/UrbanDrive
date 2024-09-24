@@ -1,9 +1,9 @@
+// src/firebase.js
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
-import { createClient } from '@supabase/supabase-js';
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -20,8 +20,4 @@ const db = getFirestore(app);
 const realtimeDb = getDatabase(app);
 const storage = getStorage(app);
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseKey = process.env.REACT_APP_SUPABASE_KEY;
-const supabaseClient = createClient(supabaseUrl, supabaseKey);
-
-export { auth, db, realtimeDb, storage, supabaseClient };
+export { auth, db, realtimeDb, storage };
