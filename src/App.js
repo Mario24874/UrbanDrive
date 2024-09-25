@@ -110,7 +110,7 @@ const App = () => {
   return (
     <Router>
       <div className="min-h-screen bg-cover bg-center flex flex-col justify-center items-center" style={{ backgroundImage: `url(${backgroundImage})` }}>
-        <div className="max-w-7xl mx-auto p-4 text-center">
+      <div className="max-w-7xl mx-auto p-4 text-center bg-black bg-opacity-70">
           <Welcome />
           {isAuthenticated ? (
             <div className="space-y-4">
