@@ -14,7 +14,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [locations, setLocations] = useState({});
+  const [locations] = useState({}); // Eliminamos setLocations
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedDriver, setSelectedDriver] = useState(null);
