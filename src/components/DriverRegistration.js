@@ -1,4 +1,6 @@
+// src/components/DriverRegistration.js
 import React, { useState } from 'react';
+import { supabase } from '../supabase';
 
 const DriverRegistration = ({ handleRegisterDriver }) => {
   const [name, setName] = useState('');
@@ -7,9 +9,19 @@ const DriverRegistration = ({ handleRegisterDriver }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    handleRegisterDriver({ name, email, password, confirmPassword, acceptTerms });
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+    const { user, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      console.error('Error registering driver:', error.message);
+      alert('Error registering driver.');
+    } else {
+      handleRegisterDriver({ user, name, acceptTerms });
+    }
   };
 
   return (

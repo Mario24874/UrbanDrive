@@ -1,7 +1,7 @@
+// src/components/DriverMap.js
 import React, { useEffect, useState } from 'react';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
-import { realtimeDb } from '../firebase';
-import { ref, onValue } from 'firebase/database';
+import { supabase } from '../supabase';
 
 const containerStyle = {
   width: '100%',
@@ -22,17 +22,15 @@ const DriverMap = () => {
   const [drivers, setDrivers] = useState([]);
 
   useEffect(() => {
-    const driversRef = ref(realtimeDb, 'locations');
-    onValue(driversRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const driversArray = Object.keys(data).map((key) => ({
-          id: key,
-          ...data[key],
-        }));
-        setDrivers(driversArray);
+    const fetchDrivers = async () => {
+      const { data, error } = await supabase.from('locations').select('*');
+      if (error) {
+        console.error(error);
+      } else {
+        setDrivers(data);
       }
-    });
+    };
+    fetchDrivers();
   }, []);
 
   return isLoaded ? (

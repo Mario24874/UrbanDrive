@@ -1,12 +1,9 @@
 // src/App.js
 import React, { useState, useEffect } from 'react';
-import { auth } from './firebase';
-import { createSupabaseClient } from './supabase'; // Importar la función para crear el cliente de Supabase
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { supabase } from './supabase';
 import backgroundImage from './assets/images/background.jpg';
 import Welcome from './components/Welcome';
-import Register from './components/Register';
-import Login from './components/Login';
+import Auth from './components/Auth';
 import Drivers from './components/Drivers';
 import Messages from './components/Messages';
 import Locations from './components/Locations';
@@ -14,11 +11,9 @@ import Geolocation from './components/Geolocation';
 import DriverMap from './components/DriverMap';
 import DriverInvitations from './components/DriverInvitations';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { convertFirebaseUUIDToStandard } from './utils/utils'; // Importar la función de conversión
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [supabaseClient, setSupabaseClient] = useState(null);
   const [locations, setLocations] = useState({});
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -27,32 +22,12 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        console.log('User UID:', user.uid); // Depurar el valor del UID
-        const standardUUID = convertFirebaseUUIDToStandard(user.uid); // Convertir el UUID
-        const client = await createSupabaseClient(); // Obtener el cliente de Supabase con el token de acceso
-        setSupabaseClient(client);
-        const { data, error } = await client.from('users').select('id').eq('id', standardUUID).single();
-        if (error) {
-          console.error(error);
-        } else if (!data) {
-          // Si el usuario no existe en Supabase, crear un registro
-          const { error: insertError } = await client.from('users').insert([{
-            id: standardUUID,
-            email: user.email,
-            display_name: user.displayName || '',
-            phone: user.phoneNumber || '',
-            provider: user.providerData[0].providerId,
-            created: new Date().toISOString(),
-            last_sign_in: new Date().toISOString(),
-          }]);
-          if (insertError) {
-            console.error(insertError);
-          }
-        }
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        const { user } = session;
         setUser(user);
         setIsAuthenticated(true);
+        await fetchUserData(user);
       } else {
         setUser(null);
         setIsAuthenticated(false);
@@ -60,74 +35,48 @@ const App = () => {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      authListener.unsubscribe();
+    };
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!supabaseClient) return;
-      const [locationsData, messagesData] = await Promise.all([
-        supabaseClient.from('locations').select('*'),
-        supabaseClient.from('messages').select('*')
-      ]);
-
-      if (locationsData.error) {
-        console.error(locationsData.error);
-      } else {
-        setLocations(locationsData.data.reduce((acc, location) => ({ ...acc, [location.driver_id]: location }), {}));
-      }
-
-      if (messagesData.error) {
-        console.error(messagesData.error);
-      } else {
-        setMessages(messagesData.data);
-      }
-    };
-
-    fetchData();
-  }, [supabaseClient]);
-
-  const handleRegister = async (data) => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      const standardUUID = convertFirebaseUUIDToStandard(userCredential.user.uid); // Convertir el UUID
-      const client = await createSupabaseClient(); // Obtener el cliente de Supabase con el token de acceso
-      await client.from('users').insert([{
-        id: standardUUID,
-        email: userCredential.user.email,
-        display_name: data.displayName,
-        phone: data.phone,
-        provider: 'email',
-        created: new Date().toISOString(),
-        last_sign_in: new Date().toISOString(),
-        user_type: data.userType,
-      }]);
-      setUser(userCredential.user);
-      setIsAuthenticated(true);
-    } catch (error) {
-      if (error.code === 'auth/email-already-in-use') {
-        alert('The email address is already in use by another account.');
-      } else {
-        console.error(error);
-        alert('Error registering user in Firebase');
-      }
+  const fetchUserData = async (user) => {
+    const { data, error } = await supabase.from('users').select('*').eq('id', user.id).single();
+    if (error) {
+      console.error(error);
+    } else {
+      setUser({ ...user, ...data });
     }
   };
 
-  const handleAuthentication = async (data) => {
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
-      setUser(userCredential.user);
+  const handleRegister = async (data) => {
+    const { user, error } = await supabase.auth.signUp({ email: data.email, password: data.password });
+    if (error) {
+      console.error('Error registering:', error.message);
+      alert('Error registering user.');
+    } else {
+      await supabase.from('users').insert([{
+        id: user.id,
+        email: user.email,
+        display_name: data.displayName,
+        phone: data.phone,
+        user_type: data.userType,
+        created: new Date().toISOString(),
+        last_sign_in: new Date().toISOString(),
+      }]);
+      setUser(user);
       setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Error during authentication:', error);
-      alert('Authentication failed. Please check your credentials.');
     }
+  };
+
+  const handleAuthentication = (user) => {
+    setUser(user);
+    setIsAuthenticated(true);
   };
 
   const handleSendMessage = async (message) => {
     try {
-      const { data, error } = await supabaseClient.from('messages').insert([{ message, driver_id: selectedDriver }]);
+      const { data, error } = await supabase.from('messages').insert([{ message, driver_id: selectedDriver }]);
       if (error) {
         console.error(error);
       } else {
@@ -144,7 +93,7 @@ const App = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await supabase.auth.signOut();
       setUser(null);
       setIsAuthenticated(false);
       alert('Logged out successfully');
@@ -181,10 +130,7 @@ const App = () => {
               )}
             </div>
           ) : (
-            <div className="space-y-4">
-              <Register handleRegister={handleRegister} />
-              <Login handleAuthentication={handleAuthentication} />
-            </div>
+            <Auth handleAuthentication={handleAuthentication} handleRegister={handleRegister} />
           )}
         </div>
         <Routes>

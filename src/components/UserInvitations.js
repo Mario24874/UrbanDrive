@@ -1,13 +1,13 @@
+// src/components/UserInvitations.js
 import React, { useEffect, useState } from 'react';
-import { createSupabaseClient } from '../supabase';
+import { supabase } from '../supabase';
 
 const UserInvitations = ({ user }) => {
   const [invitations, setInvitations] = useState([]);
 
   useEffect(() => {
     const fetchInvitations = async () => {
-      const supabaseClient = await createSupabaseClient();
-      const { data, error } = await supabaseClient.from('invitations').select('*').eq('user_id', user.id);
+      const { data, error } = await supabase.from('invitations').select('*').eq('user_id', user.id);
       if (error) {
         console.error(error);
       } else {

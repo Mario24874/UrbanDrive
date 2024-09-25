@@ -1,13 +1,13 @@
+// src/components/DriverInvitations.js
 import React, { useEffect, useState } from 'react';
-import { createSupabaseClient } from '../supabase';
+import { supabase } from '../supabase';
 
 const DriverInvitations = ({ driver }) => {
   const [invitations, setInvitations] = useState([]);
 
   useEffect(() => {
     const fetchInvitations = async () => {
-      const supabaseClient = await createSupabaseClient();
-      const { data, error } = await supabaseClient.from('invitations').select('*').eq('driver_id', driver.id).eq('status', 'pending');
+      const { data, error } = await supabase.from('invitations').select('*').eq('driver_id', driver.id).eq('status', 'pending');
       if (error) {
         console.error(error);
       } else {
@@ -18,9 +18,8 @@ const DriverInvitations = ({ driver }) => {
   }, [driver.id]);
 
   const handleAccept = async (invitationId) => {
-    const supabaseClient = await createSupabaseClient();
     try {
-      const { error } = await supabaseClient.from('invitations').update({ status: 'accepted' }).eq('id', invitationId);
+      const { error } = await supabase.from('invitations').update({ status: 'accepted' }).eq('id', invitationId);
       if (error) {
         console.error(error);
       } else {
@@ -33,9 +32,8 @@ const DriverInvitations = ({ driver }) => {
   };
 
   const handleReject = async (invitationId) => {
-    const supabaseClient = await createSupabaseClient();
     try {
-      const { error } = await supabaseClient.from('invitations').update({ status: 'rejected' }).eq('id', invitationId);
+      const { error } = await supabase.from('invitations').update({ status: 'rejected' }).eq('id', invitationId);
       if (error) {
         console.error(error);
       } else {

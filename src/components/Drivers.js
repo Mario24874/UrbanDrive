@@ -1,5 +1,6 @@
+// src/components/Drivers.js
 import React, { useEffect, useState } from 'react';
-import { createSupabaseClient } from '../supabase';
+import { supabase } from '../supabase';
 
 const Drivers = ({ user, handleSelectDriver }) => {
   const [drivers, setDrivers] = useState([]);
@@ -12,18 +13,17 @@ const Drivers = ({ user, handleSelectDriver }) => {
         return;
       }
 
-      const supabaseClient = await createSupabaseClient();
       try {
-        const { data, error } = await supabaseClient
+        const { data: invitations, error: invitationsError } = await supabase
           .from('invitations')
           .select('driver_id')
           .eq('user_id', user.id)
           .eq('status', 'accepted');
-        if (error) {
-          setError(error.message);
+        if (invitationsError) {
+          setError(invitationsError.message);
         } else {
-          const driverIds = data.map(invitation => invitation.driver_id);
-          const { data: driverData, error: driverError } = await supabaseClient
+          const driverIds = invitations.map(invitation => invitation.driver_id);
+          const { data: driverData, error: driverError } = await supabase
             .from('drivers')
             .select('*')
             .in('id', driverIds);

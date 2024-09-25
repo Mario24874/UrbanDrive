@@ -1,3 +1,4 @@
+// src/components/Messages.js
 import React from 'react';
 
 const Messages = ({ messages, newMessage, setNewMessage, handleSendMessage }) => {

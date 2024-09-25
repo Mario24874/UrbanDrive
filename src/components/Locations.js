@@ -1,3 +1,4 @@
+// src/components/Locations.js
 import React from 'react';
 
 const Locations = ({ locations, selectedDriver }) => {

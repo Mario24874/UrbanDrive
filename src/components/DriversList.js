@@ -1,18 +1,18 @@
+// src/components/DriversList.js
 import React, { useEffect, useState } from 'react';
-import { createSupabaseClient } from '../supabase';
+import { supabase } from '../supabase';
 
 const DriversList = ({ user }) => {
   const [drivers, setDrivers] = useState([]);
 
   useEffect(() => {
     const fetchDrivers = async () => {
-      const supabaseClient = await createSupabaseClient();
-      const { data, error } = await supabaseClient.from('invitations').select('driver_id').eq('user_id', user.id).eq('status', 'accepted');
+      const { data, error } = await supabase.from('invitations').select('driver_id').eq('user_id', user.id).eq('status', 'accepted');
       if (error) {
         console.error(error);
       } else {
         const driverIds = data.map(invitation => invitation.driver_id);
-        const { data: driverData, error: driverError } = await supabaseClient.from('drivers').select('*').in('id', driverIds);
+        const { data: driverData, error: driverError } = await supabase.from('drivers').select('*').in('id', driverIds);
         if (driverError) {
           console.error(driverError);
         } else {

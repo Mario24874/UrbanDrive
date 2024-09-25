@@ -1,21 +1,21 @@
+// src/components/InviteDriver.js
 import React, { useState } from 'react';
-import { createSupabaseClient } from '../supabase';
+import { supabase } from '../supabase';
 
 const InviteDriver = ({ user }) => {
   const [driverEmail, setDriverEmail] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const supabaseClient = await createSupabaseClient();
     try {
-      const { data: driverData, error: driverError } = await supabaseClient.from('drivers').select('id').eq('email', driverEmail).single();
+      const { data: driverData, error: driverError } = await supabase.from('drivers').select('id').eq('email', driverEmail).single();
       if (driverError) {
         console.error(driverError);
         alert('Driver not found!');
         return;
       }
 
-      const { error: invitationError } = await supabaseClient.from('invitations').insert([{ user_id: user.id, driver_id: driverData.id }]);
+      const { error: invitationError } = await supabase.from('invitations').insert([{ user_id: user.id, driver_id: driverData.id }]);
       if (invitationError) {
         console.error(invitationError);
       } else {

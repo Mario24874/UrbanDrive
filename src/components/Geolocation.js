@@ -1,3 +1,4 @@
+// src/components/Geolocation.js
 import React, { useEffect, useState } from 'react';
 import { realtimeDb } from '../firebase';
 import { ref, set } from 'firebase/database';
@@ -7,7 +8,7 @@ const Geolocation = () => {
 
   useEffect(() => {
     if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(
+      const watchId = navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           setLocation({ latitude, longitude });
@@ -17,6 +18,10 @@ const Geolocation = () => {
           console.error(error);
         }
       );
+
+      return () => {
+        navigator.geolocation.clearWatch(watchId);
+      };
     } else {
       console.error('Geolocation is not supported by this browser.');
     }
