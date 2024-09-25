@@ -8,7 +8,7 @@ const Login = ({ handleLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { user, error } = await supabase.auth.signIn({ email, password });
+      const { user, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         console.error('Error logging in:', error.message);
         alert('Error logging in.');
@@ -41,14 +41,13 @@ const Login = ({ handleLogin }) => {
   };
 
   return (
-    <div className="w-80 rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 bg-opacity-50">
+    <div className="w-80 rounded-2xl bg-slate-900 bg-opacity-50">
       <div className="flex flex-col gap-2 p-8">
         <p className="text-center text-3xl text-gray-300 mb-4">Login</p>
         <form onSubmit={handleSubmit}>
           <input
             className="bg-slate-900 w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-offset-2 focus:ring-offset-gray-800 text-white"
             placeholder="Email"
-            type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
