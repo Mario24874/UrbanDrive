@@ -4,18 +4,39 @@ import { supabase } from '../supabase';
 
 const UserInvitations = ({ user }) => {
   const [invitations, setInvitations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchInvitations = async () => {
-      const { data, error } = await supabase.from('invitations').select('*').eq('user_id', user.id);
-      if (error) {
-        console.error(error);
-      } else {
+      try {
+        const { data, error } = await supabase
+          .from('invitations')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
         setInvitations(data);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchInvitations();
   }, [user.id]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="w-80 rounded-2xl bg-slate-900 bg-opacity-50">

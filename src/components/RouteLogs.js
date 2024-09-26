@@ -4,18 +4,44 @@ import { supabase } from '../supabase';
 
 const RouteLogs = ({ selectedDriver }) => {
   const [routeLogs, setRouteLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchRouteLogs = async () => {
-      const { data, error } = await supabase.from('route_logs').select('*').eq('driver_id', selectedDriver);
-      if (error) {
-        console.error(error);
-      } else {
+      if (!selectedDriver) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('route_logs')
+          .select('*')
+          .eq('driver_id', selectedDriver);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
         setRouteLogs(data);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchRouteLogs();
   }, [selectedDriver]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="w-80 rounded-2xl bg-slate-900 bg-opacity-50">

@@ -4,46 +4,76 @@ import { supabase } from '../supabase';
 
 const DriverInvitations = ({ driver }) => {
   const [invitations, setInvitations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchInvitations = async () => {
-      const { data, error } = await supabase.from('invitations').select('*').eq('driver_id', driver.id).eq('status', 'pending');
-      if (error) {
-        console.error(error);
-      } else {
+      try {
+        const { data, error } = await supabase
+          .from('invitations')
+          .select('*')
+          .eq('driver_id', driver.id)
+          .eq('status', 'pending');
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
         setInvitations(data);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchInvitations();
   }, [driver.id]);
 
   const handleAccept = async (invitationId) => {
     try {
-      const { error } = await supabase.from('invitations').update({ status: 'accepted' }).eq('id', invitationId);
+      const { error } = await supabase
+        .from('invitations')
+        .update({ status: 'accepted' })
+        .eq('id', invitationId);
+
       if (error) {
-        console.error(error);
-      } else {
-        alert('Invitation accepted!');
-        setInvitations(invitations.filter(inv => inv.id !== invitationId));
+        throw new Error(error.message);
       }
+
+      alert('Invitation accepted!');
+      setInvitations(invitations.filter(inv => inv.id !== invitationId));
     } catch (error) {
-      console.error(error);
+      setError(error.message);
     }
   };
 
   const handleReject = async (invitationId) => {
     try {
-      const { error } = await supabase.from('invitations').update({ status: 'rejected' }).eq('id', invitationId);
+      const { error } = await supabase
+        .from('invitations')
+        .update({ status: 'rejected' })
+        .eq('id', invitationId);
+
       if (error) {
-        console.error(error);
-      } else {
-        alert('Invitation rejected!');
-        setInvitations(invitations.filter(inv => inv.id !== invitationId));
+        throw new Error(error.message);
       }
+
+      alert('Invitation rejected!');
+      setInvitations(invitations.filter(inv => inv.id !== invitationId));
     } catch (error) {
-      console.error(error);
+      setError(error.message);
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="w-80 rounded-2xl bg-slate-900 bg-opacity-50">

@@ -5,6 +5,8 @@ import { ref, set } from 'firebase/database';
 
 const Geolocation = () => {
   const [location, setLocation] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -13,9 +15,11 @@ const Geolocation = () => {
           const { latitude, longitude } = position.coords;
           setLocation({ latitude, longitude });
           set(ref(realtimeDb, 'locations/user-id'), { latitude, longitude });
+          setLoading(false);
         },
         (error) => {
-          console.error(error);
+          setError(error.message);
+          setLoading(false);
         }
       );
 
@@ -23,9 +27,18 @@ const Geolocation = () => {
         navigator.geolocation.clearWatch(watchId);
       };
     } else {
-      console.error('Geolocation is not supported by this browser.');
+      setError('Geolocation is not supported by this browser.');
+      setLoading(false);
     }
   }, []);
+
+  if (loading) {
+    return <div>Loading location...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div>

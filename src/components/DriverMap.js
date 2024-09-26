@@ -1,54 +1,45 @@
 // src/components/DriverMap.js
 import React, { useEffect, useState } from 'react';
-import ReactMapGL, { Marker } from 'react-map-gl';
 import { supabase } from '../supabase';
-
-const center = {
-  latitude: -34.397,
-  longitude: 150.644,
-};
+import Mapbox from './Mapbox';
 
 const DriverMap = () => {
   const [drivers, setDrivers] = useState([]);
-  const [viewport, setViewport] = useState({
-    latitude: center.latitude,
-    longitude: center.longitude,
-    zoom: 10,
-    width: '100%',
-    height: '400px',
-  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchDrivers = async () => {
-      const { data, error } = await supabase.from('locations').select('*');
-      if (error) {
-        console.error(error);
-      } else {
+      try {
+        const { data, error } = await supabase.from('locations').select('*');
+        if (error) {
+          throw new Error(error.message);
+        }
         setDrivers(data);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
     fetchDrivers();
   }, []);
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  const markers = drivers.map(driver => ({
+    lng: driver.longitude,
+    lat: driver.latitude
+  }));
+
   return (
-    <ReactMapGL
-      {...viewport}
-      mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_API_KEY}
-      onViewportChange={setViewport}
-      mapStyle="mapbox://styles/mapbox/streets-v11"
-    >
-      {drivers.map((driver) => (
-        <Marker
-          key={driver.id}
-          latitude={driver.latitude}
-          longitude={driver.longitude}
-          offsetLeft={-20}
-          offsetTop={-10}
-        >
-          <div style={{ color: 'red', fontSize: '20px' }}>📍</div>
-        </Marker>
-      ))}
-    </ReactMapGL>
+    <Mapbox initialCenter={{ lng: -34.397, lat: 150.644, zoom: 10 }} markers={markers} />
   );
 };
 

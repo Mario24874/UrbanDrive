@@ -1,4 +1,5 @@
 // src/App.js
+// src/App.js
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 import backgroundImage from './assets/images/background.jpg';
@@ -11,6 +12,8 @@ import Geolocation from './components/Geolocation';
 import DriverMap from './components/DriverMap';
 import DriverInvitations from './components/DriverInvitations';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+// import { initialMapConfig, addMarkersToMap } from './MapboxConfig';
+// import mapboxgl from 'mapbox-gl';
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -20,6 +23,7 @@ const App = () => {
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -41,20 +45,23 @@ const App = () => {
   }, []);
 
   const fetchUserData = async (user) => {
-    const { data, error } = await supabase.from('users').select('*').eq('id', user.id).single();
-    if (error) {
-      console.error(error);
-    } else {
+    try {
+      const { data, error } = await supabase.from('users').select('*').eq('id', user.id).single();
+      if (error) {
+        throw new Error(error.message);
+      }
       setUser({ ...user, ...data });
+    } catch (error) {
+      setError(error.message);
     }
   };
 
   const handleRegister = async (data) => {
-    const { user, error } = await supabase.auth.signUp({ email: data.email, password: data.password });
-    if (error) {
-      console.error('Error registering:', error.message);
-      alert('Error registering user.');
-    } else {
+    try {
+      const { user, error } = await supabase.auth.signUp({ email: data.email, password: data.password });
+      if (error) {
+        throw new Error(error.message);
+      }
       await supabase.from('users').insert([{
         id: user.id,
         email: user.email,
@@ -66,6 +73,8 @@ const App = () => {
       }]);
       setUser(user);
       setIsAuthenticated(true);
+    } catch (error) {
+      setError(error.message);
     }
   };
 
@@ -78,12 +87,11 @@ const App = () => {
     try {
       const { data, error } = await supabase.from('messages').insert([{ message, driver_id: selectedDriver }]);
       if (error) {
-        console.error(error);
-      } else {
-        setMessages([...messages, data[0]]);
+        throw new Error(error.message);
       }
+      setMessages([...messages, data[0]]);
     } catch (error) {
-      console.error(error);
+      setError(error.message);
     }
   };
 
@@ -98,7 +106,7 @@ const App = () => {
       setIsAuthenticated(false);
       alert('Logged out successfully');
     } catch (error) {
-      console.error(error);
+      setError(error.message);
       alert('Error logging out');
     }
   };
@@ -107,10 +115,14 @@ const App = () => {
     return <div>Loading...</div>;
   }
 
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
     <Router>
       <div className="min-h-screen bg-cover bg-center flex flex-col justify-center items-center" style={{ backgroundImage: `url(${backgroundImage})` }}>
-      <div className="max-w-7xl mx-auto p-4 text-center bg-black bg-opacity-70">
+        <div className="max-w-7xl mx-auto p-4 text-center bg-black bg-opacity-70">
           <Welcome />
           {isAuthenticated ? (
             <div className="space-y-4">

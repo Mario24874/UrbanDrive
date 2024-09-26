@@ -4,24 +4,50 @@ import { supabase } from '../supabase';
 
 const DriversList = ({ user }) => {
   const [drivers, setDrivers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchDrivers = async () => {
-      const { data, error } = await supabase.from('invitations').select('driver_id').eq('user_id', user.id).eq('status', 'accepted');
-      if (error) {
-        console.error(error);
-      } else {
-        const driverIds = data.map(invitation => invitation.driver_id);
-        const { data: driverData, error: driverError } = await supabase.from('drivers').select('*').in('id', driverIds);
-        if (driverError) {
-          console.error(driverError);
-        } else {
-          setDrivers(driverData);
+      try {
+        const { data: invitations, error: invitationsError } = await supabase
+          .from('invitations')
+          .select('driver_id')
+          .eq('user_id', user.id)
+          .eq('status', 'accepted');
+
+        if (invitationsError) {
+          throw new Error(invitationsError.message);
         }
+
+        const driverIds = invitations.map(invitation => invitation.driver_id);
+        const { data: driverData, error: driverError } = await supabase
+          .from('drivers')
+          .select('*')
+          .in('id', driverIds);
+
+        if (driverError) {
+          throw new Error(driverError.message);
+        }
+
+        setDrivers(driverData);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchDrivers();
   }, [user.id]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="w-80 rounded-2xl bg-slate-900 bg-opacity-50">

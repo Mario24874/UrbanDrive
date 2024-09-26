@@ -13,7 +13,7 @@ const Auth = ({ handleAuthentication, handleRegister }) => {
             Login / Register
           </h2>
         </div>
-        <Login handleAuthentication={handleAuthentication} />
+        <Login handleLogin={handleAuthentication} />
         <Register handleRegister={handleRegister} />
         <div className="mt-8">
           <h3 className="text-center text-xl font-semibold text-gray-900">

@@ -4,12 +4,14 @@ import { supabase } from '../supabase';
 
 const Drivers = ({ user, handleSelectDriver }) => {
   const [drivers, setDrivers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchInvitedDrivers = async () => {
       if (!user || !user.id) {
         setError('User not authenticated');
+        setLoading(false);
         return;
       }
 
@@ -19,26 +21,35 @@ const Drivers = ({ user, handleSelectDriver }) => {
           .select('driver_id')
           .eq('user_id', user.id)
           .eq('status', 'accepted');
+
         if (invitationsError) {
-          setError(invitationsError.message);
-        } else {
-          const driverIds = invitations.map(invitation => invitation.driver_id);
-          const { data: driverData, error: driverError } = await supabase
-            .from('drivers')
-            .select('*')
-            .in('id', driverIds);
-          if (driverError) {
-            setError(driverError.message);
-          } else {
-            setDrivers(driverData);
-          }
+          throw new Error(invitationsError.message);
         }
+
+        const driverIds = invitations.map(invitation => invitation.driver_id);
+        const { data: driverData, error: driverError } = await supabase
+          .from('drivers')
+          .select('*')
+          .in('id', driverIds);
+
+        if (driverError) {
+          throw new Error(driverError.message);
+        }
+
+        setDrivers(driverData);
       } catch (error) {
         setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchInvitedDrivers();
-  }, [user]); // Añadir 'user' como dependencia
+  }, [user]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   if (error) {
     return <div>Error: {error}</div>;
