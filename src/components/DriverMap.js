@@ -1,6 +1,6 @@
 // src/components/DriverMap.js
 import React, { useEffect, useState } from 'react';
-import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
+import ReactMapGL, { Marker } from 'react-map-gl';
 import { supabase } from '../supabase';
 
 const containerStyle = {
@@ -9,17 +9,19 @@ const containerStyle = {
 };
 
 const center = {
-  lat: -34.397,
-  lng: 150.644,
+  latitude: -34.397,
+  longitude: 150.644,
 };
 
 const DriverMap = () => {
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-  });
-
   const [drivers, setDrivers] = useState([]);
+  const [viewport, setViewport] = useState({
+    latitude: center.latitude,
+    longitude: center.longitude,
+    zoom: 10,
+    width: '100%',
+    height: '400px',
+  });
 
   useEffect(() => {
     const fetchDrivers = async () => {
@@ -33,17 +35,25 @@ const DriverMap = () => {
     fetchDrivers();
   }, []);
 
-  return isLoaded ? (
-    <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={10}>
+  return (
+    <ReactMapGL
+      {...viewport}
+      mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_API_KEY}
+      onViewportChange={setViewport}
+      mapStyle="mapbox://styles/mapbox/streets-v11"
+    >
       {drivers.map((driver) => (
         <Marker
           key={driver.id}
-          position={{ lat: driver.latitude, lng: driver.longitude }}
-        />
+          latitude={driver.latitude}
+          longitude={driver.longitude}
+          offsetLeft={-20}
+          offsetTop={-10}
+        >
+          <div style={{ color: 'red', fontSize: '20px' }}>📍</div>
+        </Marker>
       ))}
-    </GoogleMap>
-  ) : (
-    <></>
+    </ReactMapGL>
   );
 };
 
