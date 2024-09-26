@@ -3,11 +3,6 @@ import React, { useEffect, useState } from 'react';
 import ReactMapGL, { Marker } from 'react-map-gl';
 import { supabase } from '../supabase';
 
-const containerStyle = {
-  width: '100%',
-  height: '400px',
-};
-
 const center = {
   latitude: -34.397,
   longitude: 150.644,
