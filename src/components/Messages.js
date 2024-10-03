@@ -1,4 +1,3 @@
-// src/components/Messages.js
 import React, { useState } from 'react';
 
 const Messages = ({ messages, newMessage, setNewMessage, handleSendMessage }) => {

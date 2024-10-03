@@ -1,4 +1,3 @@
-// src/components/Mapbox.js
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -34,6 +33,10 @@ const Mapbox = ({ initialCenter, markers = [] }) => {
       setLat(map.current.getCenter().lat.toFixed(4));
       setZoom(map.current.getZoom().toFixed(2));
     });
+
+    return () => {
+      map.current?.remove();
+    };
   }, [lng, lat, zoom, markers]);
 
   return (

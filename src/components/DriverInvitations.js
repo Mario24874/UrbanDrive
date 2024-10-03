@@ -1,4 +1,3 @@
-// src/components/DriverInvitations.js
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
 
@@ -31,36 +30,18 @@ const DriverInvitations = ({ driver }) => {
     fetchInvitations();
   }, [driver.id]);
 
-  const handleAccept = async (invitationId) => {
+  const handleAction = async (action, invitationId) => {
     try {
       const { error } = await supabase
         .from('invitations')
-        .update({ status: 'accepted' })
+        .update({ status: action })
         .eq('id', invitationId);
 
       if (error) {
         throw new Error(error.message);
       }
 
-      alert('Invitation accepted!');
-      setInvitations(invitations.filter(inv => inv.id !== invitationId));
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  const handleReject = async (invitationId) => {
-    try {
-      const { error } = await supabase
-        .from('invitations')
-        .update({ status: 'rejected' })
-        .eq('id', invitationId);
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      alert('Invitation rejected!');
+      alert(`${action.charAt(0).toUpperCase()}${action.slice(1)}ed!`);
       setInvitations(invitations.filter(inv => inv.id !== invitationId));
     } catch (error) {
       setError(error.message);
@@ -86,13 +67,13 @@ const DriverInvitations = ({ driver }) => {
               <div className="flex gap-2">
                 <button
                   className="inline-block cursor-pointer rounded-md bg-green-700 px-4 py-3.5 text-center text-sm font-semibold uppercase text-white transition duration-200 ease-in-out hover:bg-green-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-2 active:scale-95"
-                  onClick={() => handleAccept(invitation.id)}
+                  onClick={() => handleAction('accepted', invitation.id)}
                 >
                   Accept
                 </button>
                 <button
                   className="inline-block cursor-pointer rounded-md bg-red-700 px-4 py-3.5 text-center text-sm font-semibold uppercase text-white transition duration-200 ease-in-out hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 active:scale-95"
-                  onClick={() => handleReject(invitation.id)}
+                  onClick={() => handleAction('rejected', invitation.id)}
                 >
                   Reject
                 </button>

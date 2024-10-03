@@ -1,13 +1,13 @@
 // src/components/Register.js
 import React from 'react';
-import { useAuth } from '../hooks/useAuth'; // Importa el hook
+import { useAuth } from '../hooks/useAuth';
 
 const Register = ({ handleRegister }) => {
-  const { authValues, handleAuthChange, handleRegister: registerUser, loading, error } = useAuth(); // Utiliza el hook
+  const { authValues, handleAuthChange, handleRegister: registerUser, loading, error } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await registerUser(); // Llama a la función de registro del hook
+    await registerUser();
   };
 
   return (

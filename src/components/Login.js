@@ -1,9 +1,9 @@
 // src/components/Login.js
 import React from 'react';
-import { useAuth } from '../hooks/useAuth'; // Importa el hook
+import { useAuth } from '../hooks/useAuth';
 
 const Login = ({ handleLogin }) => {
-  const { authValues, handleAuthChange, handleSubmit, loading, error } = useAuth(); // Utiliza el hook
+  const { authValues, handleAuthChange, handleSubmit, loading, error } = useAuth();
 
   const handleFormSubmit = async (e) => {
     const user = await handleSubmit(e);
@@ -40,7 +40,7 @@ const Login = ({ handleLogin }) => {
           />
           {error && error.password && <p className="text-red-500">{error.password}</p>}
           <button
-            className="inline-block cursor-pointer rounded-md bg-gray-700 px-4 py-3.5 text-center text-sm font-semibold uppercase text-white transition duration-200 ease-in-out hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-700 focus-visible:ring-offset-2 active:scale-95"
+            className="inline-block cursor-pointer rounded-md bg-gray-700 px-4 py-3.5 text-center text-sm font-semibold uppercase text-white transition duration-200 ease-in-out hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-700 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800 active:scale-95"
             type="submit"
             disabled={loading}
           >

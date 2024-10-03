@@ -1,8 +1,6 @@
-// src/components/Locations.js
 import React from 'react';
 
 const Locations = ({ locations, selectedDriver }) => {
-  // Verificar si selectedDriver es null o undefined
   if (!selectedDriver) {
     return (
       <div className="bg-slate-900 bg-opacity-50 p-6 rounded-lg shadow-lg">
@@ -12,7 +10,6 @@ const Locations = ({ locations, selectedDriver }) => {
     );
   }
 
-  // Obtener la ubicación del conductor seleccionado
   const location = locations[selectedDriver];
 
   return (

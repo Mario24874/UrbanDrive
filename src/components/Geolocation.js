@@ -1,4 +1,3 @@
-// src/components/Geolocation.js
 import React, { useEffect, useState } from 'react';
 import { realtimeDb } from '../firebase';
 import { ref, set } from 'firebase/database';

@@ -1,9 +1,8 @@
 // src/App.js
-// src/App.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabase';
 import backgroundImage from './assets/images/background.jpg';
-import Welcome from './components/Welcome';
+import WelcomePage from './components/WelcomePage';
 import Auth from './components/Auth';
 import Drivers from './components/Drivers';
 import Messages from './components/Messages';
@@ -12,21 +11,20 @@ import Geolocation from './components/Geolocation';
 import DriverMap from './components/DriverMap';
 import DriverInvitations from './components/DriverInvitations';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-// import { initialMapConfig, addMarkersToMap } from './MapboxConfig';
-// import mapboxgl from 'mapbox-gl';
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [locations] = useState({}); // Eliminamos setLocations
+  const [locations] = useState({});
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const authListenerRef = useRef(null); // Variable de referencia para almacenar el listener
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+    authListenerRef.current = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
         const { user } = session;
         setUser(user);
@@ -40,7 +38,9 @@ const App = () => {
     });
 
     return () => {
-      authListener.unsubscribe();
+      if (authListenerRef.current) {
+        authListenerRef.current.unsubscribe();
+      }
     };
   }, []);
 
@@ -62,15 +62,17 @@ const App = () => {
       if (error) {
         throw new Error(error.message);
       }
-      await supabase.from('users').insert([{
-        id: user.id,
-        email: user.email,
-        display_name: data.displayName,
-        phone: data.phone,
-        user_type: data.userType,
-        created: new Date().toISOString(),
-        last_sign_in: new Date().toISOString(),
-      }]);
+      await supabase.from('users').insert([
+        {
+          id: user.id,
+          email: user.email,
+          display_name: data.displayName,
+          phone: data.phone,
+          user_type: data.userType,
+          created: new Date().toISOString(),
+          last_sign_in: new Date().toISOString(),
+        },
+      ]);
       setUser(user);
       setIsAuthenticated(true);
     } catch (error) {
@@ -123,11 +125,11 @@ const App = () => {
     <Router>
       <div className="min-h-screen bg-cover bg-center flex flex-col justify-center items-center" style={{ backgroundImage: `url(${backgroundImage})` }}>
         <div className="max-w-7xl mx-auto p-4 text-center bg-black bg-opacity-70">
-          <Welcome />
+          <WelcomePage />
           {isAuthenticated ? (
             <div className="space-y-4">
               <button
-                className="inline-block cursor-pointer rounded-md bg-gray-700 px-4 py-3.5 text-center text-sm font-semibold uppercase text-white transition duration-200 ease-in-out hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-700 focus-visible:ring-offset-2 active:scale-95"
+                className="inline-block cursor-pointer rounded-md bg-gray-700 px-4 py-3.5 text-center text-sm font-semibold uppercase text-white transition duration-200 ease-in-out hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-700 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800 active:scale-95"
                 onClick={handleLogout}
               >
                 Logout
@@ -146,7 +148,8 @@ const App = () => {
           )}
         </div>
         <Routes>
-          <Route path="/" element={<div>Home</div>} />
+          <Route path="/" element={<WelcomePage />} />
+          <Route path="/login-register" element={<Auth handleAuthentication={handleAuthentication} handleRegister={handleRegister} />} />
           <Route path="/geolocation" element={<Geolocation />} />
           <Route path="/driver-map" element={<DriverMap />} />
           <Route path="/driver-invitations" element={<DriverInvitations driver={user} />} />
